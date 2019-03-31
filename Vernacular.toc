@@ -1,0 +1,6 @@
+## Interface: 80100
+## Title: Vernacular
+## Author: Ellypse
+## Version: 0.0.1
+
+main.xml

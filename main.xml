@@ -1,0 +1,10 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+    <Script file="Models\Language.lua"/>
+    <Script file="TRP2_Languages.lua"/>
+    <Script file="chatframe.lua"/>
+    <Script file="dropdown.lua"/>
+    <Script file="requests.lua"/>
+    <Script file="UnlimitedChatMessage_Helpers.lua"/>
+
+</Ui>
