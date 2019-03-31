@@ -6,8 +6,12 @@ local CHAT_LINK_LENGTHS = CHAT_LINK_CODE:len();
 local FORMATTED_LINK_FORMAT = "|H" ..  CHAT_LINK_CODE .. HEADER_SEPARATOR .. "%s" .. HEADER_SEPARATOR .. "%s" .. HEADER_SEPARATOR .. "%s" .. HEADER_SEPARATOR .. "|h%s|h|r";
 local FIND_LINK_CODE_FORMAT = "H" .. CHAT_LINK_CODE .. HEADER_SEPARATOR .. "%s" .. HEADER_SEPARATOR .. "%s"
 
+local tonguesCompatibility = true -- Hard coded for now, we'll provide a nice option later
+
 local RAW_TAG_PATTERN = "[%s" .. HEADER_SEPARATOR .. "v" .. HEADER_SEPARATOR .. "%s] " -- This is the raw tag to be sent in chat
+local TONGUES_RAW_TAG = "[%s] "
 local FIND_RAW_TAG_PATTERN = "%[([^%]]+)" .. HEADER_SEPARATOR .. "v" .. HEADER_SEPARATOR .. "([^%]]+)%]";
+local TONGUES_FIN_TAG = "%[([^%]]+)%]"
 
 local POSSIBLE_CHANNELS = {
     "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE",
@@ -41,7 +45,11 @@ SendChatMessage = function(text , chatType , languageIndex , channel)
 end
 
 function Vernacular.languageHeader(languageName)
-    return RAW_TAG_PATTERN:format(languageName, Vernacular.getNextMessageId())
+    if tonguesCompatibility then
+        return TONGUES_RAW_TAG:format(languageName)
+    else
+        return RAW_TAG_PATTERN:format(languageName, Vernacular.getNextMessageId())
+    end
 end
 
 function Vernacular.formattedLanguageHeader(languageName, isLocalized)
@@ -64,6 +72,10 @@ local function lookForChatLinks(_, chatType, message, playerName, ...)
         end
         return generateFormattedLink(text, playerName, messageID)
     end)
+    message = gsub(message, TONGUES_FIN_TAG, function(language)
+        Vernacular.requestForTonguesTranslation(language, playerName, chatType)
+        return generateFormattedLink(language, playerName, "TONGUES_" .. language)
+    end)
     return false, message, playerName, ...;
 end
 
@@ -85,7 +97,6 @@ function Vernacular.replaceMessageInChatFrames(messageId, sender, closure)
             chatWindow:TransformMessages(shouldChangeMessage, changeMessage);
         end
     end
-
 end
 
 hooksecurefunc("ChatFrame_OnHyperlinkShow", function(_, link)

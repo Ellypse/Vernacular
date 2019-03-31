@@ -9,6 +9,7 @@ local LOCALIZING_TEXT = " |cffCCCCCC(Requesting translation...)|r"
 local activeRequests = {}
 local nextMessageId = 0
 local sentMessages = {}
+local lastSentMessage = ""
 
 local playerName
 function Vernacular.getPlayerName()
@@ -57,8 +58,12 @@ end
 local f = CreateFrame("FRAME")
 f:RegisterEvent("CHAT_MSG_ADDON")
 
-f:SetScript("OnEvent", function(self, event, _, data, _, sender)
+f:SetScript("OnEvent", function(self, event, prefix, data, _, sender)
     if event == "CHAT_MSG_ADDON" then
+        if prefix == "Tongues2" then
+            Vernacular.onTonguesReceived(event, prefix, data, _, sender)
+            return
+        end
         data = getData(data)
         local requestType = data[1]
 
@@ -101,5 +106,76 @@ function Vernacular.getNextMessageId()
 end
 
 function Vernacular.store(text)
+    lastSentMessage = text
     sentMessages[tostring(nextMessageId)] = text
+end
+
+
+-----------------------------
+--- Tongues
+-----------------------------
+
+C_ChatInfo.RegisterAddonMessagePrefix("Tongues2")
+
+local serializer = LibStub("AceSerializer-3.0");
+
+Vernacular.TONGUES_LANGUAGES = {
+    "Orcish",
+    "Common",
+    "Zandali",
+    "Dwarvish",
+    "Draenei",
+    "Gnomish",
+    "Darnassian",
+    "Forsaken",
+    "Gutterspeak",
+    "Taurahe",
+    "Thalassian",
+    "Gilnean",
+    "Nether",
+    "Ursine",
+    "Kodo",
+    "Wyvern",
+    "Seal",
+    "Bird",
+    "Ravenspeech",
+    "Equine",
+    "Binary",
+    "Moonkin",
+    "Trentish",
+    "Dark Iron",
+    "Kalimag",
+    "Demonic",
+    "Eredun",
+    "Titan",
+    "Draconic",
+    "Nerubian",
+    "Qiraji",
+    "Nerglish",
+    "Nazja",
+    "Scourge"
+}
+
+function Vernacular.onTonguesReceived(_, _, data, chatType, sender)
+    local success, deserializedData = serializer:Deserialize(data)
+    if not success then return end
+    local type = deserializedData[1]
+    if type == "RT" then
+        local _, _, channel, frame, language = unpack(deserializedData)
+        C_ChatInfo.SendAddonMessage("Tongues2", serializer:Serialize({ "TR", channel, frame, language, lastSentMessage}), "WHISPER", sender)
+    elseif type == "TR" then
+        local _, _, _, language, text = unpack(deserializedData)
+        onReceivedAnswerForTranslation("TONGUES_" .. language, text, sender)
+    end
+end
+
+function Vernacular.requestForTonguesTranslation(language, player, chatType)
+    local messageId = "TONGUES_" .. language
+    if not activeRequests[messageId .. player] then
+        activeRequests[messageId .. player] = true
+        C_ChatInfo.SendAddonMessage("Tongues2", serializer:Serialize({ "RT", 100, chatType, 1, language, lastSentMessage}), "WHISPER", player)
+        Vernacular.replaceMessageInChatFrames(messageId, player, function(message)
+            return message .. LOCALIZING_TEXT
+        end)
+    end
 end

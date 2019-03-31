@@ -1,5 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
+    <Script file="libs/LibStub/LibStub.lua"/>
+    <Script file="libs/AceSerializer-3.0/AceSerializer-3.0.lua"/>
     <Script file="Models\Language.lua"/>
     <Script file="TRP2_Languages.lua"/>
     <Script file="chatframe.lua"/>
